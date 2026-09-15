@@ -79,10 +79,12 @@ services:
     image: drill4j-sample-app:local
     platform: ${DRILL_PLATFORM}
     environment:
-      # Attach the Drill4J native agent from the shared volume. The extra -D
-      # flags disable zip memory-mapping / CDS, which avoids a SIGBUS in
-      # libzip when the amd64 JVM runs under the arm64 machine's emulation.
-      - JAVA_TOOL_OPTIONS=-Dsun.zip.disableMemoryMapping=true -Xshare:off -agentpath:/data/agent/libdrill_agent.so
+      # The entrypoint attaches the native agent from the shared volume only
+      # when DRILL_AGENT_ENABLED=true. On Apple Silicon the amd64-only agent is
+      # unreliable under emulation, so it defaults to false there; set it to
+      # true on a native x86_64 host (see EMULATION_NOTES.md).
+      - DRILL_AGENT_ENABLED=${DRILL_AGENT_ENABLED}
+      - SAMPLE_APP_JAVA_OPTS=${SAMPLE_APP_JAVA_OPTS}
       - DRILL_API_URL=http://drill-admin:8090/api
       - DRILL_API_KEY=${DRILL_API_KEY}
       - DRILL_APP_ID=${DRILL_APP_ID}

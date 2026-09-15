@@ -2,6 +2,7 @@
 # Build the sample app and bring the whole Drill4J stack up under Podman.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+[ -f .env ] && set -a && . ./.env && set +a
 
 echo "==> Ensuring the Podman machine is running..."
 podman machine inspect >/dev/null 2>&1 && podman info >/dev/null 2>&1 || podman machine start

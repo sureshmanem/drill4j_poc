@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Hit the sample app's endpoints so the Drill4J agent records coverage.
 set -euo pipefail
+cd "$(dirname "$0")/.."
+[ -f .env ] && set -a && . ./.env && set +a
 BASE="http://localhost:${SAMPLE_APP_PORT:-8080}"
 
 echo "==> Exercising ${BASE} ..."

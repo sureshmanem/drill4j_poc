@@ -13,10 +13,11 @@ RUN mvn -q -B clean package -DskipTests
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /build/target/drill4j-sample-app.jar /app/app.jar
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
 # The Drill4J native agent (libdrill_agent.so) is provided at runtime via the
-# shared "agent-files" volume mounted at /data (see docker-compose.yml). It is
-# attached through JAVA_TOOL_OPTIONS set in the compose file, so no agent path
-# is hard-coded here.
+# shared "agent-files" volume mounted at /data (see docker-compose.yml). The
+# entrypoint attaches it only when DRILL_AGENT_ENABLED=true.
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["/app/entrypoint.sh"]

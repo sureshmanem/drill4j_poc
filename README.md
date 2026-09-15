@@ -37,13 +37,32 @@ real code for Drill4J to report on:
 # 1. Bring the whole stack up (builds the sample app image too)
 ./scripts/up.sh
 
-# 2. Wait ~30-60s for the admin backend to finish DB migrations, then
-#    generate some traffic so the agent records coverage
+# 2. Wait for the admin backend to finish DB migrations, then generate traffic
 ./scripts/generate-load.sh
 
-# 3. Open the UI and inspect coverage / test gaps
-open http://localhost:8091
+# 3. Open the UI (and the sample app)
+open http://localhost:8091   # Drill4J UI
+open http://localhost:8080   # sample app
 ```
+
+## Enabling the Drill4J agent (instrumentation)
+
+Whether the sample app is instrumented is controlled by `DRILL_AGENT_ENABLED`
+in [`.env`](.env):
+
+- `DRILL_AGENT_ENABLED=false` *(default)* — the app runs plain. The full
+  control plane (admin + UI + Postgres) is up and the app is reachable, so you
+  can explore everything except live coverage.
+- `DRILL_AGENT_ENABLED=true` — the entrypoint attaches
+  `-agentpath:/data/agent/libdrill_agent.so`, the app registers with the admin
+  backend, and coverage/test-gap data flows into the UI.
+
+> ⚠️ **Apple Silicon:** the Drill4J agent is published only for `linux/amd64`
+> and is **unreliable under emulation** on arm64 Macs (it segfaults during
+> class instrumentation, even under Rosetta + `-Xint`). It therefore defaults
+> to **off**. To actually collect coverage, run this stack on a native
+> `linux/amd64` host and set `DRILL_AGENT_ENABLED=true`. Full details and the
+> Rosetta machine setup are in [EMULATION_NOTES.md](EMULATION_NOTES.md).
 
 Tear everything down (add `--volumes` to also wipe the DB):
 
