@@ -1,0 +1,15 @@
+# Java / Maven
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+*.iml
+.vscode/
+
+# Local overrides
+.env.local
