@@ -11,7 +11,7 @@ with the Drill4J Java agent to collect **code coverage** and **test-gap** metric
 | `postgres`     | `postgres:17.0`                             | 5432  | Admin backend storage, pre-seeded with an API key  |
 | `drill-admin`  | `ghcr.io/drill4j/admin:0.10.2`              | 8090  | Drill4J backend / REST API                         |
 | `drill-ui`     | `ghcr.io/drill4j/drill4j-ui:0.10.2`         | 8091  | Drill4J web UI                                      |
-| `agent-files`  | `drill4j/java-agent:0.10.3`                 | —     | Drops `libdrill_agent.so` into a shared volume     |
+| `agent-files`  | `drill4j/java-agent:0.8.0-38` (agent 0.10.3) | —     | Drops `libdrill_agent.so` into a shared volume     |
 | `sample-app`   | `./sample-app` (Spring Boot 3, Java 17)     | 8080  | Application under test, agent attached at startup  |
 
 The sample app (`com.example.demo`) exposes a few branching endpoints so there is

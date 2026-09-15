@@ -60,7 +60,7 @@ services:
 
   # Populates the shared "agent-files" volume with libdrill_agent.so, then exits.
   agent-files:
-    image: drill4j/java-agent:${JAVA_AGENT_VERSION}
+    image: drill4j/java-agent:${JAVA_AGENT_IMAGE_TAG}
     platform: ${DRILL_PLATFORM}
     environment:
       - AGENT_VERSION=${JAVA_AGENT_VERSION}
@@ -79,8 +79,10 @@ services:
     image: drill4j-sample-app:local
     platform: ${DRILL_PLATFORM}
     environment:
-      # Attach the Drill4J native agent from the shared volume.
-      - JAVA_TOOL_OPTIONS=-agentpath:/data/agent/libdrill_agent.so
+      # Attach the Drill4J native agent from the shared volume. The extra -D
+      # flags disable zip memory-mapping / CDS, which avoids a SIGBUS in
+      # libzip when the amd64 JVM runs under the arm64 machine's emulation.
+      - JAVA_TOOL_OPTIONS=-Dsun.zip.disableMemoryMapping=true -Xshare:off -agentpath:/data/agent/libdrill_agent.so
       - DRILL_API_URL=http://drill-admin:8090/api
       - DRILL_API_KEY=${DRILL_API_KEY}
       - DRILL_APP_ID=${DRILL_APP_ID}
