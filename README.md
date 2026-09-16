@@ -25,7 +25,14 @@ real code for Drill4J to report on:
 ## Prerequisites
 
 - [Podman](https://podman.io/) and `podman-compose`
-- A running Podman machine (`podman machine start`)
+- The default Podman machine running:
+
+  ```bash
+  podman machine start podman-machine-default
+  ```
+
+  No special machine or provider is needed — everything runs on
+  `podman-machine-default`.
 
 > **Apple Silicon note:** all Drill4J images are `linux/amd64`. They run under the
 > Podman machine's emulation layer; the platform is pinned via `DRILL_PLATFORM`

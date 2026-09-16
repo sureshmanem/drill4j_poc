@@ -16,48 +16,43 @@ JVM has to run as amd64 — i.e. under emulation on an arm64 host.
 | Podman machine provider | Emulation | Result with the agent attached                                   |
 | ----------------------- | --------- | ---------------------------------------------------------------- |
 | `libkrun` (default)     | qemu-user | JVM **SIGBUS crash** in `libzip.so` during agent load            |
-| `applehv` + Rosetta     | Rosetta   | Default JIT **SIGSEGV**; with **`-Xint` it is stable** (but slow) |
+| `applehv` + Rosetta     | Rosetta   | Default JIT **SIGSEGV**; `-Xint` survives only intermittently     |
 
-So the working recipe on Apple Silicon is:
+Even the best case (Rosetta + `-Xint`) only *sometimes* survived agent load and
+never reliably completed a build registration, so **on Apple Silicon this PoC
+runs with the agent turned off** (`DRILL_AGENT_ENABLED=false`). The control
+plane and the sample app run fine on the default `podman-machine-default`
+(libkrun) machine.
 
-1. Use a Podman machine created with the **`applehv`** provider and **Rosetta
-   enabled** (`rosetta = true` in `containers.conf`), and
-2. Run the instrumented JVM in **interpreter-only mode** (`-Xint`).
+## This repo's default setup
 
-Both are already wired up in this repo:
+- Everything runs on the standard **`podman-machine-default`** machine — no
+  special provider or extra machine is required.
+- `docker-compose.yml` pins every service to `linux/amd64`.
+- `.env` ships with `DRILL_AGENT_ENABLED=false`, so `./scripts/up.sh` brings up
+  a clean, working stack (admin + UI + Postgres + the sample app) on any host.
 
-- `.env` sets `SAMPLE_APP_JAVA_OPTS=-Xint`
-- `docker-compose.yml` pins every service to `linux/amd64`
+## Collecting real coverage (native x86_64)
 
-### Creating the Rosetta machine (one-time)
-
-```bash
-# Enable Rosetta for Podman machines
-mkdir -p ~/.config/containers
-cat >> ~/.config/containers/containers.conf <<'EOF'
-[machine]
-rosetta = true
-EOF
-
-# Create and start an applehv machine (Rosetta only works with applehv)
-podman machine init --provider applehv drill-rosetta --cpus 4 --memory 4096 --disk-size 20
-podman machine start drill-rosetta
-```
-
-Verify Rosetta is on: `podman machine inspect drill-rosetta` should show
-`"Rosetta": true`.
-
-## Recommended path for real use
-
-Emulation + `-Xint` is fine for a functional PoC but is **slow** (boot takes
-several minutes and runtime throughput is low). For anything beyond a demo, run
-the instrumented application on a **native `linux/amd64` host** (an Intel
-machine, an amd64 cloud VM, or an amd64 CI runner). There, remove `-Xint`:
+To actually exercise the Drill4J agent and see coverage/test-gap data, run the
+stack on a **native `linux/amd64` host** — an Intel machine, an amd64 cloud VM,
+or an amd64 CI runner — and enable the agent:
 
 ```bash
 # on a native x86_64 host
-SAMPLE_APP_JAVA_OPTS= ./scripts/up.sh
+# .env:
+#   DRILL_AGENT_ENABLED=true
+#   SAMPLE_APP_JAVA_OPTS=        # no -Xint needed; full-speed JIT
+./scripts/up.sh
+./scripts/generate-load.sh
 ```
 
 The admin backend, UI and Postgres are architecture-agnostic and run natively on
 either platform.
+
+## Appendix: Rosetta experiment (not required)
+
+For the record, the closest we got on arm64 was an `applehv` machine with
+Rosetta enabled (`rosetta = true` in `containers.conf`) plus `-Xint`. It still
+crashed intermittently during class instrumentation, so it is **not** part of
+the default setup and no `drill-rosetta` machine is needed.
